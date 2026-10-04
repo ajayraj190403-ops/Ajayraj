@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futuristic Hero Section</title>
+    <!-- Import Google Fonts for clean sans-serif typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00f3ff;
+            --neon-purple: #9d00ff;
+            --dark-bg: #050507;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--dark-bg);
+            color: #ffffff;
+            overflow: hidden; /* Prevent scrolling for the hero effect */
+        }
+
+        /* Three.js Canvas Container */
+        #webgl-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* UI Overlay */
+        .ui-layer {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            pointer-events: none; /* Let clicks pass through to 3D background if needed */
+        }
+
+        /* Navbar */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 5%;
+            pointer-events: auto;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 400;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #fff;
+            text-shadow: 0 0 10px var(--neon-cyan);
+        }
+
+        /* Hero Content */
+        .hero-content {
+            flex-grow: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 5%;
+        }
+
+        .text-section {
+            max-width: 600px;
+            pointer-events: auto;
+            animation: floatUI 6s ease-in-out infinite;
+        }
+
+        h1 {
+            font-size: 4.5rem;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+        }
+
+        .text-gradient {
+            background: linear-gradient(45deg, var(--neon-cyan), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 15px rgba(157, 0, 255, 0.4));
+        }
+
+        p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 2.5rem;
+        }
+
+        /* Frosted Glass UI Panels */
+        .glass-panel {
+            background: rgba(25, 25, 30, 0.2);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            pointer-events: auto;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+            background: linear-gradient(90deg, rgba(0, 243, 255, 0.1), rgba(157, 0, 255, 0.1));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            text-decoration: none;
+            backdrop-filter: blur(10px);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 20px rgba(157, 0, 255, 0.2);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            background: linear-gradient(90deg, rgba(0, 243, 255, 0.4), rgba(157, 0, 255, 0.4));
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.4), 
+                        0 0 40px rgba(157, 0, 255, 0.4);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Floating UI Panel on Right */
+        .stats-panel {
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            transform: perspective(1000px) rotateY(-15deg);
+            animation: floatUI 8s ease-in-out infinite reverse;
+        }
+
+        .stat-item h3 {
+            font-size: 2rem;
+            color: var(--neon-cyan);
+            margin-bottom: 0.2rem;
+        }
+
+        .stat-item p {
+            font-size: 0.85rem;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        @keyframes floatUI {
+            0%, 100% { transform: translateY(0) perspective(1000px) rotateY(-15deg); }
+            50% { transform: translateY(-20px) perspective(1000px) rotateY(-10deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .hero-content {
+                flex-direction: column;
+                justify-content: center;
+                text-align: center;
+            }
+            .stats-panel {
+                display: none; /* Hide for mobile to focus on orb */
+            }
+            h1 { font-size: 3rem; }
+            .text-section { animation: none; transform: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 3D Background Container -->
+    <div id="webgl-container"></div>
+
+    <!-- UI Overlay Container -->
+    <div class="ui-layer">
+        <nav>
+            <div class="logo">Awwwards.XYZ</div>
+            <div class="nav-links">
+                <a href="#">Showcase</a>
+                <a href="#">Studio</a>
+                <a href="#">Connect</a>
+            </div>
+        </nav>
+
+        <div class="hero-content">
+            <div class="text-section">
+                <h1>Enter the <br><span class="text-gradient">Next Dimension</span></h1>
+                <p>Experience web design redefined. A cinematic blend of dynamic motion, exploded isometric geometry, and hyper-realistic glassmorphism rendered in real-time.</p>
+                <a href="#" class="cta-button">Initialize Sequence</a>
+            </div>
+
+            <div class="glass-panel stats-panel">
+                <div class="stat-item">
+                    <h3>8K</h3>
+                    <p>Resolution Ready</p>
+                </div>
+                <div class="stat-item">
+                    <h3>120fps</h3>
+                    <p>Dynamic Motion Blur</p>
+                </div>
+                <div class="stat-item">
+                    <h3>UE5</h3>
+                    <p>Render Inspiration</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <script>
+        // Setup Scene, Camera, Renderer
+        const scene = new THREE.Scene();
+        // Add subtle fog for depth
+        scene.fog = new THREE.FogExp2(0x050507, 0.02);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.z = 15;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Optimization
+        renderer.toneMapping = THREE.ACESFilmicToneMapping; // Cinematic color mapping
+        renderer.toneMappingExposure = 1.2;
+        document.getElementById('webgl-container').appendChild(renderer.domElement);
+
+        // Lighting (Neon Cyan & Purple + Ambient)
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+        scene.add(ambientLight);
+
+        const cyanLight = new THREE.PointLight(0x00f3ff, 5, 30);
+        cyanLight.position.set(-5, 5, 2);
+        scene.add(cyanLight);
+
+        const purpleLight = new THREE.PointLight(0x9d00ff, 5, 30);
+        purpleLight.position.set(5, -5, 2);
+        scene.add(purpleLight);
+        
+        // Backlight for edge glow
+        const backLight = new THREE.PointLight(0xffffff, 2, 50);
+        backLight.position.set(0, 0, -10);
+        scene.add(backLight);
+
+        // Center Massive Glass Orb
+        const orbGeometry = new THREE.SphereGeometry(3.5, 64, 64);
+        
+        // Physical Material for realistic glassmorphism
+        const glassMaterial = new THREE.MeshPhysicalMaterial({
+            color: 0xffffff,
+            metalness: 0.1,
+            roughness: 0.05,
+            transmission: 1, // Add transparency
+            ior: 1.5, // Index of refraction
+            thickness: 2.0, // Volume for refraction
+            envMapIntensity: 1.0,
+            clearcoat: 1.0,
+            clearcoatRoughness: 0.1
+        });
+
+        const orb = new THREE.Mesh(orbGeometry, glassMaterial);
+        scene.add(orb);
+
+        // Exploded Isometric View: Abstract Geometric Shapes
+        const shapes = [];
+        const geometries = [
+            new THREE.IcosahedronGeometry(0.4, 0),
+            new THREE.TetrahedronGeometry(0.3, 0),
+            new THREE.OctahedronGeometry(0.35, 0),
+            new THREE.BoxGeometry(0.4, 0.4, 0.4)
+        ];
+
+        // Dark matte material for contrast against the glass
+        const darkMaterial = new THREE.MeshStandardMaterial({
+            color: 0x111115,
+            roughness: 0.2,
+            metalness: 0.8
+        });
+
+        const wireframeMaterial = new THREE.MeshBasicMaterial({
+            color: 0x00f3ff,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.15
+        });
+
+        // Scatter shapes outward
+        for(let i = 0; i < 40; i++) {
+            const geo = geometries[Math.floor(Math.random() * geometries.length)];
+            
+            // Randomly assign solid or wireframe
+            const mat = Math.random() > 0.8 ? wireframeMaterial : darkMaterial;
+            const mesh = new THREE.Mesh(geo, mat);
+            
+            // Random position in a spherical radius outside the orb
+            const radius = 5 + Math.random() * 5;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(Math.random() * 2 - 1);
+            
+            mesh.position.x = radius * Math.sin(phi) * Math.cos(theta);
+            mesh.position.y = radius * Math.sin(phi) * Math.sin(theta);
+            mesh.position.z = radius * Math.cos(phi);
+            
+            // Random rotation
+            mesh.rotation.x = Math.random() * Math.PI;
+            mesh.rotation.y = Math.random() * Math.PI;
+
+            // Store orbital variables for animation
+            mesh.userData = {
+                speedX: (Math.random() - 0.5) * 0.02,
+                speedY: (Math.random() - 0.5) * 0.02,
+                orbitSpeed: 0.001 + Math.random() * 0.002,
+                angle: theta,
+                distance: radius,
+                yOffset: mesh.position.y
+            };
+
+            shapes.push(mesh);
+            scene.add(mesh);
+        }
+
+        // Mouse Parallax Effect
+        let mouseX = 0;
+        let mouseY = 0;
+        let targetX = 0;
+        let targetY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX - window.innerWidth / 2) / window.innerWidth;
+            mouseY = (e.clientY - window.innerHeight / 2) / window.innerHeight;
+        });
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Animation Loop
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const elapsedTime = clock.getElapsedTime();
+
+            // Rotate main orb
+            orb.rotation.y = elapsedTime * 0.1;
+            orb.rotation.x = elapsedTime * 0.05;
+
+            // Gentle floating for orb
+            orb.position.y = Math.sin(elapsedTime * 0.5) * 0.3;
+
+            // Animate scattered shapes
+            shapes.forEach(shape => {
+                // Self rotation
+                shape.rotation.x += shape.userData.speedX;
+                shape.rotation.y += shape.userData.speedY;
+
+                // Orbital motion
+                shape.userData.angle += shape.userData.orbitSpeed;
+                shape.position.x = shape.userData.distance * Math.cos(shape.userData.angle);
+                shape.position.z = shape.userData.distance * Math.sin(shape.userData.angle);
+                
+                // Vertical wave
+                shape.position.y = shape.userData.yOffset + Math.sin(elapsedTime + shape.userData.angle) * 0.5;
+            });
+
+            // Smooth parallax for camera
+            targetX = mouseX * 3;
+            targetY = mouseY * 3;
+            
+            camera.position.x += (targetX - camera.position.x) * 0.05;
+            camera.position.y += (-targetY - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+
+            // Move lights dynamically to create simulated motion blur/cinematic reflections
+            cyanLight.position.x = Math.sin(elapsedTime * 0.5) * 6;
+            cyanLight.position.z = Math.cos(elapsedTime * 0.5) * 4;
+            
+            purpleLight.position.x = Math.sin(elapsedTime * 0.3 + Math.PI) * 6;
+            purpleLight.position.y = Math.cos(elapsedTime * 0.4) * 5 - 2;
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
